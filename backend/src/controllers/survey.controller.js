@@ -5,6 +5,7 @@ import { Survey } from "../models/Survey.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js"; 
 
 const createSurvey = asyncHandler(async (req, res) => {
+    console.log("Inside create survey backend")
     const { formType, name, icon, questions } = req.body;
 
     if (!formType || !name || !icon || !questions) {
@@ -53,9 +54,10 @@ const getSurveyByType = asyncHandler(async (req, res) => {
 });
 
 const updateSurvey = asyncHandler(async (req, res) => {
+    console.log("Inside update survey inside backend")
     const { formType } = req.params;
     const { name, icon, questions, isActive } = req.body;
-
+    console.log(formType)
     const survey = await Survey.findOneAndUpdate(
         { formType },
         {
@@ -79,13 +81,11 @@ const updateSurvey = asyncHandler(async (req, res) => {
 });
 
 const deleteSurvey = asyncHandler(async (req, res) => {
+    console.log("Inside deletesurvey method in backend");
     const { formType } = req.params;
+    console.log(formType);
+    const survey = await Survey.findOneAndDelete({ formType, isActive: true });
 
-    const survey = await Survey.findOneAndUpdate(
-        { formType },
-        { $set: { isActive: false } },
-        { new: true }
-    );
 
     if (!survey) {
         throw new ApiError(404, "Survey not found");
@@ -95,6 +95,7 @@ const deleteSurvey = asyncHandler(async (req, res) => {
         new ApiResponse(200, {}, "Survey deleted successfully")
     );
 });
+
 
 export {
     createSurvey,

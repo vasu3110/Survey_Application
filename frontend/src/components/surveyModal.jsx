@@ -23,22 +23,29 @@ const SurveyModal = ({ isOpen, onClose, onSubmit, initialData = null, isViewMode
         .finally(() => setIsLoadingQuestions(false));
       
       // Set the basic form data immediately from the provided initialData.
+      console.log(typeof initialData.icon)
       setFormData({
         formType: initialData.id,
         name: initialData.name,
         icon: initialData.icon,
       });
-    } else if (isOpen) {
-      // This is "create" mode. Reset the form completely.
-      setFormData({ formType: '', name: '', icon: '' });
-      setLocalQuestions([{ text: '' }]);
+    } 
+    else if (isOpen) {
+        setFormData({ formType: '', name: '', icon: 'default' });
+        setLocalQuestions([
+          { id: 1, question: '' }
+        ]);
     }
   }, [isOpen, initialData, fetchSurveyQuestions]);
 
   // This effect syncs the globally fetched surveyQuestions into the modal's local state.
   useEffect(() => {
     if (initialData && surveyQuestions.length > 0) {
-      setLocalQuestions(surveyQuestions.map(q => ({ text: q.question || '' })));
+      setLocalQuestions(surveyQuestions.map((q, idx) => ({
+        id: q.id ?? idx + 1,
+        question: q.question || q.text || ''
+      })));
+
     }
   }, [surveyQuestions, initialData]);
 
@@ -50,12 +57,26 @@ const SurveyModal = ({ isOpen, onClose, onSubmit, initialData = null, isViewMode
   };
 
   const handleQuestionChange = (index, value) => {
-    const newQuestions = [...localQuestions];
-    newQuestions[index].text = value;
-    setLocalQuestions(newQuestions);
+  const updated = [...localQuestions];
+  updated[index].question = value;    // Update 'question' property
+  setLocalQuestions(updated);
+};
+
+
+  // Inside your SurveyModal component
+
+  // Add this function near the top with other handlers:
+  const addQuestion = () => {
+    setLocalQuestions([
+      ...localQuestions,
+      {
+        id: localQuestions.length > 0 ? localQuestions[localQuestions.length - 1].id + 1 : 1,
+        question: ''
+      }
+    ]);
   };
 
-  const addQuestion = () => setLocalQuestions([...localQuestions, { text: '' }]);
+
 
   const removeQuestion = (index) => {
     if (localQuestions.length > 1) {
@@ -66,7 +87,12 @@ const SurveyModal = ({ isOpen, onClose, onSubmit, initialData = null, isViewMode
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isViewMode) return; // Prevent submission in view-only mode
-    const finalData = { ...formData, questions: localQuestions };
+    const questionsForBackend = localQuestions.map((q, idx) => ({
+      id: q.id ?? idx + 1,
+      question: q.question
+    }));
+
+    const finalData = { ...formData, questions: questionsForBackend };
     onSubmit(finalData);
   };
 
@@ -91,7 +117,7 @@ const SurveyModal = ({ isOpen, onClose, onSubmit, initialData = null, isViewMode
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Survey Name</label>
+            <label className="block text-sm font-medium">Created By</label>
             <input
               type="text"
               name="name"
@@ -112,7 +138,7 @@ const SurveyModal = ({ isOpen, onClose, onSubmit, initialData = null, isViewMode
                 <div key={index} className="flex items-center space-x-2">
                   <input
                     type="text"
-                    value={q.text ?? ''}
+                    value={q.question ?? ''}       // <-- Use 'question' here!
                     onChange={(e) => handleQuestionChange(index, e.target.value)}
                     className="w-full p-2 border rounded"
                     placeholder={`Question ${index + 1}`}
@@ -126,6 +152,7 @@ const SurveyModal = ({ isOpen, onClose, onSubmit, initialData = null, isViewMode
                   )}
                 </div>
               ))}
+
               {!isViewMode && (
                 <button type="button" onClick={addQuestion} className="flex items-center space-x-2 text-blue-600 hover:text-blue-800">
                   <PlusCircle size={20} />

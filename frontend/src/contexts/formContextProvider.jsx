@@ -31,8 +31,8 @@ const FormContextProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const formIconMap = {
     "group-survey": <Building />,
-    "network-survey": <Users />,
-    "individual-survey": <User />,
+    "Users": <Users />,
+    "User": <User />,
     default: <Building />, // A fallback icon
   };
 
@@ -100,9 +100,9 @@ const FormContextProvider = ({ children }) => {
       const formattedData = response.data.data.map((survey) => ({
         id: survey.formType, // Use formType as the unique ID for the frontend
         name: survey.name,
-        icon: formIconMap[survey.icon] || formIconMap.default, // Match icon string to component
+        icon: survey.icon // Match icon string to component
       }));
-
+ 
       setFormTypes(formattedData);
     } catch (err) {
       console.error("Failed to fetch surveys:", err);
@@ -172,6 +172,7 @@ const FormContextProvider = ({ children }) => {
   };
 
   const createSurvey = async (surveyData) => {
+    console.log(surveyData);
     // The backend `createSurvey` function handles the API call
     // This function can be a wrapper if you need to add more logic
     // For now, let's assume direct API call from the component is fine,
@@ -180,15 +181,21 @@ const FormContextProvider = ({ children }) => {
         const response = await api.post('/surveys/create', surveyData);
         return response.data;
     } catch (error) {
+      console.log("Inside createSurvey error")
         throw new Error(error.response?.data?.message || "Failed to create survey");
     }
 };
 
 const updateSurvey = async (formType, surveyData) => {
+    console.log(formType)
+    console.log(surveyData)
+    console.log(`/surveys/${formType}`, surveyData)
+    console.log(typeof surveyData.icon)
     try {
         const response = await api.patch(`/surveys/${formType}`, surveyData);
         return response.data;
     } catch (error) {
+        console.log("catch block aa gya oye")
         throw new Error(error.response?.data?.message || "Failed to update survey");
     }
 };
@@ -240,6 +247,7 @@ const deleteSurvey = async (formType) => {
     createSurvey,
     updateSurvey, 
     deleteSurvey,
+    formIconMap
   };
 
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;

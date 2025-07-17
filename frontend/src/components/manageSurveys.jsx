@@ -28,6 +28,8 @@ const ManageSurveys = () => {
     };
 
     const handleOpenUpdateModal = (survey) => {
+        console.log("Hello")
+        console.log(survey);
         setCurrentSurvey(survey);
         setIsViewMode(false);
         setIsModalOpen(true);
@@ -39,6 +41,7 @@ const ManageSurveys = () => {
                 await deleteSurvey(formType);
                 fetchSurveys();
             } catch (error) {
+                console.log("Error in deletion")
                 alert(error.message);
             }
         }
@@ -49,11 +52,14 @@ const ManageSurveys = () => {
             if (currentSurvey) {
                 await updateSurvey(currentSurvey.id, surveyData);
             } else {
+                console.log(surveyData)
                 await createSurvey(surveyData);
             }
             fetchSurveys();
             setIsModalOpen(false);
         } catch (error) {
+            console.log("Error aa gya oye")
+            console.log(currentSurvey)
             alert(error.message);
         }
     };
@@ -90,7 +96,7 @@ const ManageSurveys = () => {
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Form Type</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>

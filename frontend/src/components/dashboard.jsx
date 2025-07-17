@@ -6,7 +6,7 @@ import FormContext from "../contexts/formContext";
 import { Building, Users, User } from "lucide-react";
 
 const Dashboard = () => {
-  const { formTypes, isLoading, error, fetchSurveys } = useContext(FormContext);
+  const { formTypes, isLoading, error, fetchSurveys ,formIconMap} = useContext(FormContext);
   const navigate = useNavigate();
   console.log(formTypes)
   useEffect(() => {
@@ -57,7 +57,7 @@ const Dashboard = () => {
             >
               <div className="text-center">
                 <div className="flex justify-center text-blue-500 text-4xl mb-4">
-                  {form.icon}
+                  {formIconMap.icon}
                 </div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   {form.id}

@@ -28,6 +28,7 @@ export const verifyJWT = asyncHandler(async(req, _, next) => {
 });
 
 export const verifyUserType = (allowedTypes) => {
+    console.log("Inside verifyUserType")
     return asyncHandler(async (req, res, next) => {
         if (!allowedTypes.includes(req.user.userType)) {
             throw new ApiError(403, "Access denied. Insufficient permissions.");
