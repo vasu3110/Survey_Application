@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Your React dev server
+    origin: 'https://survey-application-xo62.onrender.com', // Your React dev server
     credentials: true
     // methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     // allowedHeaders: ['Content-Type', 'Authorization']
