@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-production-backend.com' 
+  ? 'https://survey-application-backend-ote1.onrender.com' 
   : 'http://localhost:8000';
 
 const api = axios.create({
