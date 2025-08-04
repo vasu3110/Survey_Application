@@ -78,7 +78,7 @@ const EmployeeFormsReview = () => {
       "Device Type": submission.deviceType,
       "Device Name": submission.deviceName,
       "Serial No": submission.serialNo,
-      "Model": submission.model,
+      Model: submission.model,
       "IP Address": submission.ipAddress,
       "MAC Address": submission.macAddress,
       "Operating System": submission.os,
@@ -285,6 +285,10 @@ const EmployeeFormsReview = () => {
                     Form Type
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
+                    Submission Date
+                  </th>
+
+                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
                     View Response
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
@@ -331,6 +335,9 @@ const EmployeeFormsReview = () => {
                     <td className="border border-gray-300 px-4 py-3 text-sm">
                       {formTypes.find((f) => f.id === submission.formType)
                         ?.formType || submission.formType}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-center text-sm">
+                      {new Date(submission.submissionDate).toLocaleString()}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
                       <button

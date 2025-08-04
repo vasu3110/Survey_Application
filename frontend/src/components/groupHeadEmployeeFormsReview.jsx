@@ -2,6 +2,8 @@ import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import FormContext from "../contexts/formContext";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const GroupHeadEmployeeFormsReview = () => {
   const {
@@ -149,6 +151,49 @@ const GroupHeadEmployeeFormsReview = () => {
       groupHeadStatus: "all",
     });
     handleResetSearch();
+  };
+  const exportToPDF = (submissions) => {
+    const doc = new jsPDF();
+
+    const tableColumn = [
+      "S.No",
+      "Employee Name",
+      "Group Name",
+      "Network Name",
+      "Device Type",
+      "IP Address",
+      "MAC Address",
+      "OS",
+      "Serial No",
+      "Form Type",
+      "Submission Date",
+      "Group Head Status",
+    ];
+
+    const tableRows = submissions.map((sub, index) => [
+      index + 1,
+      sub.employeeName,
+      sub.groupName,
+      sub.networkName,
+      sub.deviceType,
+      sub.ipAddress,
+      sub.macAddress,
+      sub.os,
+      sub.serialNo,
+      sub.formType,
+      new Date(sub.submissionDate).toLocaleString(),
+      sub.statusGroupHead,
+    ]);
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [41, 128, 185] },
+      startY: 20,
+    });
+
+    doc.save("grouphead_submission_report.pdf");
   };
 
   return (
@@ -304,7 +349,7 @@ const GroupHeadEmployeeFormsReview = () => {
                 onClick={handleResetSearch}
                 className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
               >
-                Clear Search
+                Search
               </button>
             </div>
           </div>
@@ -330,9 +375,21 @@ const GroupHeadEmployeeFormsReview = () => {
                     Device Type
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                    IP Address
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                    MAC Address
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                    OS
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                    Serial No
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
                     Form Type
                   </th>
-                  <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
                     Submission Date
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
@@ -349,6 +406,7 @@ const GroupHeadEmployeeFormsReview = () => {
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 {filteredSubmissions.length > 0 ? (
                   filteredSubmissions.map((submission, index) => (
@@ -369,11 +427,23 @@ const GroupHeadEmployeeFormsReview = () => {
                         {submission.deviceType}
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-sm">
+                        {submission.ipAddress}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-sm">
+                        {submission.macAddress}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-sm">
+                        {submission.os}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-sm">
+                        {submission.serialNo}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-sm">
                         {formTypes.find((f) => f.id === submission.formType)
                           ?.formType || submission.formType}
                       </td>
-                      <td className="border border-gray-300 px-4 py-3 text-center text-sm">
-                        {submission.submissionDate}
+                      <td className="border border-gray-300 px-4 py-3 text-sm">
+                        {new Date(submission.submissionDate).toLocaleString()}
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-center">
                         <button
@@ -414,7 +484,7 @@ const GroupHeadEmployeeFormsReview = () => {
                         </span>
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-center">
-                        {submission.statusGroupHead === "pending" && (
+                        {submission.statusGroupHead === "pending" ? (
                           <div className="flex space-x-1 justify-center">
                             <button
                               onClick={() =>
@@ -436,8 +506,7 @@ const GroupHeadEmployeeFormsReview = () => {
                               Reject
                             </button>
                           </div>
-                        )}
-                        {submission.statusGroupHead !== "pending" && (
+                        ) : (
                           <button
                             onClick={() =>
                               handleStatusUpdate(submission._id, "pending")
@@ -452,7 +521,7 @@ const GroupHeadEmployeeFormsReview = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="11" className="text-center py-8 text-gray-500">
+                    <td colSpan="15" className="text-center py-8 text-gray-500">
                       No submissions found for your group matching the current
                       filters.
                     </td>
@@ -460,6 +529,14 @@ const GroupHeadEmployeeFormsReview = () => {
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={() => exportToPDF(employeeSubmissions)}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              Download PDF
+            </button>
           </div>
         </div>
       </div>
