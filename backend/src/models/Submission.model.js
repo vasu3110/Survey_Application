@@ -58,7 +58,6 @@ const submissionSchema = new Schema(
         formType: {
             type: String,
             required: true,
-            enum: ['safety', 'quality', 'environment', 'training', 'feedback', 'performance', 'innovation', 'wellness', 'communication']
         },
         responses: {
             type: Map,

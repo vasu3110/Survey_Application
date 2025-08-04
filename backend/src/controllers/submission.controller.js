@@ -3,8 +3,14 @@ import { ApiError } from "../utils/ApiError.js";
 import { Submission } from "../models/Submission.model.js";
 import { System } from "../models/System.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { validationResult } from "express-validator";
+
 
 const createSubmission = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid submission data", errors.array());
+    }
     const { formType, responses, profileData, systemId } = req.body;
     if (!formType || !responses || !profileData || !systemId) {
         throw new ApiError(400, "All fields including systemId are required");
@@ -54,6 +60,10 @@ const createSubmission = asyncHandler(async (req, res) => {
 
 
 const getSubmissions = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid getSubmission data request", errors.array());
+    }
     const {
         page = 1,
         limit = 10,
@@ -139,6 +149,10 @@ const getSubmissions = asyncHandler(async (req, res) => {
 
 
 const getSubmissionById = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid getSubmissionById request", errors.array());
+    }
     const { submissionId } = req.params;
 
     let matchStage = { _id: submissionId };
@@ -161,6 +175,10 @@ const getSubmissionById = asyncHandler(async (req, res) => {
 
 
 const updateSubmissionStatus = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid updateSubmission status request", errors.array());
+    }
     const { submissionId } = req.params;
     const { status } = req.body;
 
@@ -197,6 +215,10 @@ const updateSubmissionStatus = asyncHandler(async (req, res) => {
 
 
 const getMySubmissions = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid getMySubmissions request data", errors.array());
+    }
     const { page = 1, limit = 10 } = req.query;
 
     const aggregateQuery = Submission.aggregate([

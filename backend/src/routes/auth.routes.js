@@ -12,7 +12,7 @@ import {
   registerValidator,
   loginValidator,
   updateProfileValidator
-} from "../validators/authValidator.js";
+} from "../validators/authValidators.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();

@@ -2,59 +2,54 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { System } from "../models/System.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { validationResult } from "express-validator";
 
 // Create a new system specification
 const createSystem = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new ApiError(422, "Invalid input", errors.array());
+  }
   const {
     deviceType,
     deviceName,
     serialNo,
     model,
-    os,
-    ipAddress,
-    macAddress,
-    antivirus,
-    network,
+    os,          // now optional
+    ipAddress,   // now optional
+    macAddress,  // now optional
+    antivirus,   // now optional
+    network,     // now optional
     roomNo,
-    
   } = req.body;
 
-  // Validate required fields (additional server-side validation)
   if (
     !deviceType ||
     !deviceName ||
     !serialNo ||
     !model ||
-    !os ||
-    !ipAddress ||
-    !macAddress ||
-    !antivirus ||
-    !network ||
     roomNo === undefined
   ) {
-    throw new ApiError(400, "All fields except 'isActive' are required");
+    throw new ApiError(400, "deviceType, deviceName, serialNo, model, and roomNo are required");
   }
 
-  // Check if system with same serialNo (or combination) already exists - optional
-  // Example uniqueness check (you can adjust based on your business logic)
   const existedSystem = await System.findOne({ serialNo, isActive: true });
   if (existedSystem) {
     throw new ApiError(409, "A system with this serial number already exists");
   }
 
-  // Create system & assign owner from authenticated user
   const system = await System.create({
     deviceType,
     deviceName,
     serialNo,
     model,
-    os,
-    ipAddress,
-    macAddress,
-    antivirus,
-    network,
+    os: os || null,
+    ipAddress: ipAddress || null,
+    macAddress: macAddress || null,
+    antivirus: antivirus || null,
+    network: network || null,
     roomNo,
-    user: req.user._id, // assuming req.user is set by auth middleware
+    user: req.user._id,
   });
 
   if (!system) {
@@ -68,6 +63,10 @@ const createSystem = asyncHandler(async (req, res) => {
 import { Submission } from "../models/Submission.model.js"; // import submission model
 
 const checkSystemAndSubmission = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new ApiError(422, "Invalid input", errors.array());
+  }
   const {
     serialNo,
     formType,
@@ -86,6 +85,7 @@ const checkSystemAndSubmission = asyncHandler(async (req, res) => {
 
   if (!system) {
     // System does not exist => client needs to create system then proceed
+    console.log("System not found")
     return res.status(200).json(
       new ApiResponse(200, null, "System not found, needs creation")
     );
@@ -113,6 +113,10 @@ const checkSystemAndSubmission = asyncHandler(async (req, res) => {
 
 // Get all active systems for the logged-in user
 const getUserSystems = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new ApiError(422, "Invalid input", errors.array());
+  }
   const userId = req.user._id;
 
   const systems = await System.find({ user: userId, isActive: true });
@@ -124,6 +128,10 @@ const getUserSystems = asyncHandler(async (req, res) => {
 
 // Optionally get single system by ID
 const getSystemById = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new ApiError(422, "Invalid input", errors.array());
+  }
   const { systemId } = req.params;
   const userId = req.user._id;
 
@@ -137,6 +145,10 @@ const getSystemById = asyncHandler(async (req, res) => {
 
 // Soft-delete a system (mark inactive)
 const deleteSystem = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new ApiError(422, "Invalid input", errors.array());
+  }
   const { systemId } = req.params;
   const userId = req.user._id;
 
@@ -155,16 +167,43 @@ const deleteSystem = asyncHandler(async (req, res) => {
 
 // Optional: Update system details
 const updateSystem = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new ApiError(422, "Invalid input", errors.array());
+  }
   const { systemId } = req.params;
   const userId = req.user._id;
 
   const updateData = req.body;
 
-  // Optionally validate updateData fields here
+  const allowedFields = [
+    "deviceType",
+    "deviceName",
+    "serialNo",
+    "model",
+    "os",
+    "ipAddress",
+    "macAddress",
+    "antivirus",
+    "network",
+    "roomNo"
+  ];
+
+  // Filter only allowed fields
+  const sanitizedData = {};
+  for (const key of allowedFields) {
+    if (updateData[key] !== undefined) {
+      sanitizedData[key] = updateData[key];
+    }
+  }
+
+  if (Object.keys(sanitizedData).length === 0) {
+    throw new ApiError(400, "No valid fields provided to update");
+  }
 
   const system = await System.findOneAndUpdate(
     { _id: systemId, user: userId, isActive: true },
-    { $set: updateData },
+    { $set: sanitizedData },
     { new: true, runValidators: true }
   );
 
@@ -174,6 +213,7 @@ const updateSystem = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, system, "System updated successfully"));
 });
+
 
 export {
   createSystem,

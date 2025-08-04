@@ -26,6 +26,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // Validate input errors from express-validator
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log("❌ Login validation failed:", errors.array());
     throw new ApiError(422, "Invalid inputs", errors.array());
   }
   const { username, email, password, userType, groupname } = req.body;
@@ -64,6 +65,7 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.log("❌ Login validation failed:", errors.array());
         throw new ApiError(422, "Invalid login inputs", errors.array());
     }
   const { username, password, userType, groupname } = req.body;

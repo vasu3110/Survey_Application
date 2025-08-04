@@ -10,10 +10,10 @@ export const registerValidator = [
     .normalizeEmail(),
 
   body("password")
-    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+    .isLength({ min: 8 }).withMessage("Password must be at least 6 characters"),
 
   body("userType")
-    .isIn(["admin", "grouphead", "respondent"]) // adjust as per your user types
+    .isIn(["coordinator", "grouphead", "employee"]) // adjust as per your user types
     .withMessage("Invalid user type"),
 
   body("groupname")
@@ -25,13 +25,15 @@ export const registerValidator = [
 export const loginValidator = [
   body("username")
     .isString().withMessage("Username is required")
-    .trim().escape(),
+    .trim().escape()
+    .notEmpty().withMessage("Username is required"),
 
   body("password")
-    .notEmpty().withMessage("Password is required"),
+    .isString().withMessage("Password must be a string")
+    .isLength({ min: 8 }).withMessage("Password must be at least 8 characters"),
 
   body("userType")
-    .isIn(["admin", "grouphead", "respondent"])
+    .isIn(["coordinator", "grouphead", "employee"])
     .withMessage("Invalid user type"),
 
   body("groupname")

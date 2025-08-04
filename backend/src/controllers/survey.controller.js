@@ -3,8 +3,15 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Survey } from "../models/Survey.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js"; 
+import { validationResult } from "express-validator";
+
 
 const createSurvey = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log("❌ survey creation failed:", errors.array());
+        throw new ApiError(422, "Invalid input", errors.array());
+    }
     const { formType, name, icon, questions } = req.body;
 
     if (!formType || !name || !icon || !questions) {
@@ -17,7 +24,7 @@ const createSurvey = asyncHandler(async (req, res) => {
     }
     const survey = await Survey.create({
         formType,
-        name:req.user.profileData.name,
+        name,
         icon,
         questions,
         createdBy: req.user._id
@@ -29,6 +36,10 @@ const createSurvey = asyncHandler(async (req, res) => {
 });
 
 const getAllSurveys = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid input", errors.array());
+    }
     const surveys = await Survey.find({ isActive: true }).select("-createdBy");
 
     return res.status(200).json(
@@ -37,6 +48,10 @@ const getAllSurveys = asyncHandler(async (req, res) => {
 });
 
 const getSurveyByType = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid input", errors.array());
+    }
     const { formType } = req.params;
     if (!formType) {
         throw new ApiError(400, "Form type is required");
@@ -53,6 +68,10 @@ const getSurveyByType = asyncHandler(async (req, res) => {
 });
 
 const updateSurvey = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid input", errors.array());
+    }
     const { formType } = req.params;
     const { name, icon, questions, isActive } = req.body;
     const survey = await Survey.findOneAndUpdate(
@@ -78,6 +97,11 @@ const updateSurvey = asyncHandler(async (req, res) => {
 });
 
 const deleteSurvey = asyncHandler(async (req, res) => {
+    
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid input", errors.array());
+    }
     const { formType } = req.params;
     const survey = await Survey.findOneAndDelete({ formType, isActive: true });
 
