@@ -1,15 +1,25 @@
 // src/components/profile.jsx
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FormContext from "../contexts/formContext";
 import { authService } from "../services/authService";
+import { ArrowLeft } from "lucide-react";
 
 const Profile = () => {
-  const { profileData, setProfileData } = useContext(FormContext);
+  const { profileData, setProfileData, userType } = useContext(FormContext);
   const navigate = useNavigate();
+  const [phoneError, setPhoneError] = useState("");
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
+
+    // PHONE VALIDATION
+    if (!/^\d{10}$/.test(profileData.phone)) {
+      setPhoneError("Phone number must be exactly 10 digits.");
+      return;
+    } else {
+      setPhoneError("");
+    }
 
     try {
       await authService.updateProfile(profileData);
@@ -22,15 +32,45 @@ const Profile = () => {
     }
   };
 
+  // Only allow digits, max 10 chars
+  const handlePhoneChange = (e) => {
+    const digits = e.target.value.replace(/\D/g, "");
+    setProfileData({ ...profileData, phone: digits.slice(0, 10) });
+    if (phoneError) setPhoneError(""); // clear error as user types
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-8">
+          {userType === "coordinator" && (
+            <button
+              onClick={() => navigate("/coordinatorDashboard")}
+              className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
+            </button>
+          )}
+          {(userType === "grouphead" || userType === "employee") && (
+            <button
+              onClick={() => navigate("/groupheadDashboard")}
+              className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
+            </button>
+          )}
           <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
             Profile Information
           </h2>
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
+          <form
+            onSubmit={handleProfileSubmit}
+            className="space-y-4"
+            autoComplete="off"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Name
@@ -45,6 +85,7 @@ const Profile = () => {
                   required
                 />
               </div>
+              {/* Department */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Department
@@ -62,6 +103,7 @@ const Profile = () => {
                   required
                 />
               </div>
+              {/* Employee ID */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Employee ID
@@ -79,6 +121,7 @@ const Profile = () => {
                   required
                 />
               </div>
+              {/* Designation */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Designation
@@ -96,6 +139,7 @@ const Profile = () => {
                   required
                 />
               </div>
+              {/* Phone with validation */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Phone
@@ -103,13 +147,21 @@ const Profile = () => {
                 <input
                   type="tel"
                   value={profileData.phone ?? ""}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, phone: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={handlePhoneChange}
+                  pattern="\d{10}"
+                  maxLength={10}
+                  inputMode="numeric"
+                  className={`w-full px-3 py-2 border ${
+                    phoneError ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   required
+                  placeholder="Enter 10-digit phone number"
                 />
+                {phoneError && (
+                  <p className="text-red-600 text-xs mt-1">{phoneError}</p>
+                )}
               </div>
+              {/* Group Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Group Name
@@ -123,79 +175,6 @@ const Profile = () => {
                       grpname: e.target.value,
                       groupName: e.target.value,
                     })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  IP Address
-                </label>
-                <input
-                  type="text"
-                  value={profileData.address ?? ""}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, address: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Network
-                </label>
-                <input
-                  type="text"
-                  value={profileData.network ?? ""}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, network: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Operating System
-                </label>
-                <input
-                  type="text"
-                  value={profileData.os ?? ""}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, os: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Antivirus
-                </label>
-                <input
-                  type="text"
-                  value={profileData.antivirus ?? ""}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      antivirus: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Room Number
-                </label>
-                <input
-                  type="number"
-                  value={profileData.roomNo ?? ""}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, roomNo: e.target.value })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required

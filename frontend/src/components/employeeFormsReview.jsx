@@ -1,67 +1,113 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-// import { uniqueGroups, uniqueNetworks } from "../utils/uniqueValues";
 import { ArrowLeft } from "lucide-react";
 import FormContext from "../contexts/formContext";
-import { submissionService } from "../services/submissionService";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const EmployeeFormsReview = () => {
   const {
-    employeeSubmissions, // This will now come from the API
+    employeeSubmissions, // Comes from API
     filterCriteria,
     setFilterCriteria,
     formTypes,
-    fetchEmployeeSubmissions, // New function
+    fetchEmployeeSubmissions,
     updateSubmissionStatus,
     fetchSurveys,
   } = React.useContext(FormContext);
 
-  // if (!employeeSubmissions) {
-  //   throw new Error(
-  //     "Employee submissions must be loaded before using EmployeeFormsReview component"
-  //   );
-  // }
-  // if (!formTypes) {
-  //   throw new Error(
-  //     "Form types must be loaded before using EmployeeFormsReview component"
-  //   );
-  // }
-  // if (!filterCriteria) {
-  //   throw new Error(
-  //     "Filter criteria must be set before using EmployeeFormsReview component"
-  //   );
-  // }
-  // Get unique group names from submissions
   const navigate = useNavigate();
-   useEffect(() => {
+
+  useEffect(() => {
     fetchSurveys();
   }, [fetchSurveys]);
 
-  // 3. Fetch submissions when filter changes
+  // Fetch submissions whenever filters change
   useEffect(() => {
     fetchEmployeeSubmissions(filterCriteria);
   }, [filterCriteria, fetchEmployeeSubmissions]);
 
+  const [localFilters, setLocalFilters] = React.useState({
+    employeeName: filterCriteria.employeeName || "",
+    deviceType: filterCriteria.deviceType || "",
+    ipAddress: filterCriteria.ipAddress || "",
+    macAddress: filterCriteria.macAddress || "",
+    os: filterCriteria.os || "",
+    serialNo: filterCriteria.serialNo || "",
+    coordinatorStatus: filterCriteria.coordinatorStatus || "all", // new field with default "all"
+  });
+
+  // Handle input change, updating only local state
+  const handleLocalFilterChange = (e) => {
+    const { name, value } = e.target;
+    setLocalFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // On submit of filters, update global filter state which triggers API fetch
+  const handleFilterSubmit = (e) => {
+    e.preventDefault();
+    setFilterCriteria((prev) => ({
+      ...prev,
+      ...localFilters,
+    }));
+  };
+
   if (!formTypes || formTypes.length === 0) {
     return <div>Loading form types...</div>;
   }
-  
-  
-  const uniqueGroups = [...new Set(employeeSubmissions.map(sub => sub.groupName).filter(Boolean))];
 
-  // Get unique network names from submissions
-  const uniqueNetworks = [...new Set(employeeSubmissions.map(sub => sub.networkName).filter(Boolean))];
-  console.log(formTypes)
-  
+  const uniqueGroups = [
+    ...new Set(employeeSubmissions.map((sub) => sub.groupName).filter(Boolean)),
+  ];
+
+  const uniqueNetworks = [
+    ...new Set(
+      employeeSubmissions.map((sub) => sub.networkName).filter(Boolean)
+    ),
+  ];
 
   const handleStatusUpdate = (submissionId, newStatus) => {
-    // Call the API function from context
     updateSubmissionStatus(submissionId, newStatus);
   };
-  const filteredSubmissions = employeeSubmissions;
-  console.log(filteredSubmissions)
 
+  const filteredSubmissions = employeeSubmissions;
+  const exportToExcel = (data) => {
+    // Map data to the columns you want
+    const worksheetData = data.map((submission) => ({
+      "Device Type": submission.deviceType,
+      "Device Name": submission.deviceName,
+      "Serial No": submission.serialNo,
+      "Model": submission.model,
+      "IP Address": submission.ipAddress,
+      "MAC Address": submission.macAddress,
+      "Operating System": submission.os,
+      "Employee Name": submission.employeeName,
+      "Group Name": submission.groupName,
+      "Network Name": submission.networkName,
+      "Form Type": submission.formType,
+    }));
+
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+
+    // Optional: set column widths, styles etc.
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Submissions");
+
+    // Generate buffer
+    const wbout = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    // Save file locally
+    saveAs(
+      new Blob([wbout], { type: "application/octet-stream" }),
+      "submissions_report.xlsx"
+    );
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
@@ -80,24 +126,24 @@ const EmployeeFormsReview = () => {
             <div></div>
           </div>
 
-          {/* Filters */}
+          {/* Filters Section */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold text-gray-700 mb-3">
               Filter Submissions
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <form
+              onSubmit={handleFilterSubmit}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+            >
+              {/* Existing filters: Form Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Form Type
                 </label>
                 <select
-                  value={filterCriteria.formType}
-                  onChange={(e) =>
-                    setFilterCriteria({
-                      ...filterCriteria,
-                      formType: e.target.value,
-                    })
-                  }
+                  name="formType"
+                  value={localFilters.formType || filterCriteria.formType}
+                  onChange={handleLocalFilterChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Forms</option>
@@ -108,18 +154,16 @@ const EmployeeFormsReview = () => {
                   ))}
                 </select>
               </div>
+
+              {/* Group */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Group
                 </label>
                 <select
-                  value={filterCriteria.groupName}
-                  onChange={(e) =>
-                    setFilterCriteria({
-                      ...filterCriteria,
-                      groupName: e.target.value,
-                    })
-                  }
+                  name="groupName"
+                  value={localFilters.groupName || filterCriteria.groupName}
+                  onChange={handleLocalFilterChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Groups</option>
@@ -130,18 +174,16 @@ const EmployeeFormsReview = () => {
                   ))}
                 </select>
               </div>
+
+              {/* Network */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Network
                 </label>
                 <select
-                  value={filterCriteria.networkName}
-                  onChange={(e) =>
-                    setFilterCriteria({
-                      ...filterCriteria,
-                      networkName: e.target.value,
-                    })
-                  }
+                  name="networkName"
+                  value={localFilters.networkName || filterCriteria.networkName}
+                  onChange={handleLocalFilterChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Networks</option>
@@ -152,7 +194,59 @@ const EmployeeFormsReview = () => {
                   ))}
                 </select>
               </div>
-            </div>
+
+              {/* Coordinator Status Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Coordinator Status
+                </label>
+                <select
+                  name="coordinatorStatus"
+                  value={localFilters.coordinatorStatus}
+                  onChange={handleLocalFilterChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Forms</option>
+                  <option value="approved">Approved Forms</option>
+                  <option value="not approved">Rejected Forms</option>
+                  <option value="pending">Pending Forms</option>
+                </select>
+              </div>
+
+              {/* Other Search Inputs: Employee Name, Device Type, IP, MAC, OS, SerialNo */}
+              {[
+                { label: "Employee Name", name: "employeeName" },
+                { label: "Device Type", name: "deviceType" },
+                { label: "IP Address", name: "ipAddress" },
+                { label: "MAC Address", name: "macAddress" },
+                { label: "OS", name: "os" },
+                { label: "Serial Number", name: "serialNo" },
+              ].map(({ label, name }) => (
+                <div key={name}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {label}
+                  </label>
+                  <input
+                    type="text"
+                    name={name}
+                    value={localFilters[name]}
+                    onChange={handleLocalFilterChange}
+                    placeholder={`Search by ${label.toLowerCase()}`}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              ))}
+
+              {/* Submit button */}
+              <div className="md:col-span-3 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Search
+                </button>
+              </div>
+            </form>
           </div>
 
           {/* Submissions Table */}
@@ -174,6 +268,18 @@ const EmployeeFormsReview = () => {
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
                     Device Type
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                    IP Address
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                    MAC Address
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                    OS
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                    Serial No
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
                     Form Type
@@ -209,6 +315,18 @@ const EmployeeFormsReview = () => {
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-sm">
                       {submission.deviceType}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-sm">
+                      {submission.ipAddress}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-sm">
+                      {submission.macAddress}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-sm">
+                      {submission.os}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-sm">
+                      {submission.serialNo}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-sm">
                       {formTypes.find((f) => f.id === submission.formType)
@@ -297,9 +415,20 @@ const EmployeeFormsReview = () => {
               </p>
             </div>
           )}
+          {filteredSubmissions.length > 0 && (
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => exportToExcel(filteredSubmissions)}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Export to Excel
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
 export default EmployeeFormsReview;

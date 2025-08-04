@@ -18,7 +18,6 @@ router.route("/").get(getAllSurveys);
 // Protected routes - only coordinators can manage surveys
 router.use(verifyJWT);
 router.route("/create").post(verifyUserType(['coordinator']), createSurvey);
-console.log("Inside survey.routes")
 router
   .route("/:formType")
   .get(getSurveyByType)

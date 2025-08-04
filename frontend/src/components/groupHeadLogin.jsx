@@ -4,7 +4,6 @@ import { ArrowLeft } from "lucide-react";
 import FormContext from "../contexts/formContext";
 
 const GroupHeadLogin = () => {
-  console.log("Hello");
   const { setIsLoggedIn, profileData, setProfileData } =
     React.useContext(FormContext);
   const navigate = useNavigate();
@@ -56,7 +55,6 @@ const GroupHeadLogin = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Group Name
             </label>
-            {console.log("Hi")}
             <input
               type="text"
               value={loginData.groupname}

@@ -3,11 +3,14 @@ import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Check } from "lucide-react";
 import FormContext from "../contexts/formContext";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { submissionService } from "../services/submissionService";
 
 const Review = () => {
   const { formType } = useParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const systemId = searchParams.get("systemId");
   const {
     formTypes,
     surveyResponses,
@@ -24,6 +27,7 @@ const Review = () => {
         formType,
         responses: surveyResponses,
         profileData,
+        systemId,
       });
       alert("Survey submitted successfully!");
       navigate("/dashboard");

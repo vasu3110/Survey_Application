@@ -1,18 +1,27 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Users, ChevronRight, FileText, Group } from "lucide-react";
-import  FormContext  from "../contexts/formContext"; // Adjust import as per your context
-
+import FormContext from "../contexts/formContext"; // Adjust import as per your context
+import { ArrowLeft } from "lucide-react";
 const GroupHeadDashboard = () => {
   const navigate = useNavigate();
-  const { userType } = useContext(FormContext); 
+  const { userType } = useContext(FormContext);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-          {userType === "grouphead" ? "Group Head Dashboard" : "Employee Dashboard"}
+          {userType === "grouphead"
+            ? "Group Head Dashboard"
+            : "Employee Dashboard"}
         </h1>
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Logout
+        </button>
         <div className="space-y-4">
           {/* Fill Survey Card (common for both) */}
           <div
@@ -29,7 +38,8 @@ const GroupHeadDashboard = () => {
               <ChevronRight className="h-5 w-5 text-gray-400" />
             </div>
             <p className="text-gray-600 text-sm mt-2">
-              Complete survey forms {userType === "grouphead" ? "as group head" : "as employee"}
+              Complete survey forms{" "}
+              {userType === "grouphead" ? "as group head" : "as employee"}
             </p>
           </div>
 

@@ -9,6 +9,28 @@ const submissionSchema = new Schema(
             ref: "User",
             required: true
         },
+        systemId: {
+            type: Schema.Types.ObjectId,          // <--- use this as device reference
+            ref: "System",
+            required: true
+        },
+    // ... optionally, for denormalized snapshot:
+        ipAddress:   {
+             type: String ,
+             required: true
+        },          // Stores actual IP at submission time, optional
+        macAddress:  { 
+            type: String ,
+            required: true
+        },
+        os:{
+            type: String,
+            required: true
+        },
+        serialNo: {
+            type: String,
+            required: true
+        }, 
         employeeName: {
             type: String,
             required: true
@@ -21,8 +43,16 @@ const submissionSchema = new Schema(
             type: String,
             required: true
         },
+        deviceName: {
+            type: String,   // Optional, can be derived from system 
+            required: true
+        },
         deviceType: {
             type: String,
+            required: true
+        },
+        model: {
+            type: String,   // Optional, can be derived from system     
             required: true
         },
         formType: {

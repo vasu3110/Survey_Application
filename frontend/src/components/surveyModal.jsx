@@ -23,7 +23,6 @@ const SurveyModal = ({ isOpen, onClose, onSubmit, initialData = null, isViewMode
         .finally(() => setIsLoadingQuestions(false));
       
       // Set the basic form data immediately from the provided initialData.
-      console.log(typeof initialData.icon)
       setFormData({
         formType: initialData.id,
         name: initialData.name,

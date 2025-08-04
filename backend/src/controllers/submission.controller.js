@@ -1,33 +1,49 @@
-// src/controllers/submission.controller.js
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Submission } from "../models/Submission.model.js";
+import { System } from "../models/System.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const createSubmission = asyncHandler(async (req, res) => {
-    const { formType, responses, profileData } = req.body;
-
-    if (!formType || !responses || !profileData) {
-        throw new ApiError(400, "All fields are required");
+    const { formType, responses, profileData, systemId } = req.body;
+    if (!formType || !responses || !profileData || !systemId) {
+        throw new ApiError(400, "All fields including systemId are required");
+    }
+    // Verify the system exists and belongs to the user
+    const system = await System.findOne({
+        _id: systemId,
+        user: req.user._id,
+        isActive: true
+    });
+    if (!system) {
+        throw new ApiError(404, "System not found or unauthorized");
     }
 
-    // Check if user already submitted this form type
+    // Check if user already submitted this form type from the same system
     const existingSubmission = await Submission.findOne({
         employeeId: req.user._id,
+        systemId: system._id,
         formType
     });
 
     if (existingSubmission) {
-        throw new ApiError(409, "You have already submitted this survey");
+        throw new ApiError(409, "You have already submitted this survey from this system");
     }
 
     const submission = await Submission.create({
         employeeId: req.user._id,
+        systemId: system._id,
         employeeName: profileData.name || req.user.username,
         groupName: profileData.groupName || profileData.grpname,
-        networkName: profileData.network,
-        deviceType: profileData.os || 'Unknown',
+        networkName: system.network,
+        deviceType: system.deviceType,
+        ipAddress: system.ipAddress,
+        macAddress: system.macAddress,
+        os: system.os,
+        serialNo: system.serialNo,
         formType,
+        deviceName: system.deviceName || system.deviceType, // Use deviceType if deviceName is not available
+        model: system.model || "Unknown", // Use model if available, else default to "Unknown"
         responses: new Map(Object.entries(responses))
     });
 
@@ -36,9 +52,26 @@ const createSubmission = asyncHandler(async (req, res) => {
     );
 });
 
+
 const getSubmissions = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, formType, groupName, networkName, status } = req.query;
-    
+    const {
+        page = 1,
+        limit = 10,
+        formType,
+        groupName,
+        networkName,
+        status,
+        employeeName,
+        deviceType,
+        ipAddress,
+        macAddress,
+        os,
+        serialNo,
+        deviceName,
+        model,
+        coordinatorStatus
+    } = req.query;
+
     let matchStage = {};
 
     // For group heads, only show submissions from their group
@@ -46,7 +79,7 @@ const getSubmissions = asyncHandler(async (req, res) => {
         matchStage.groupName = req.user.profileData?.groupName;
     }
 
-    // Apply filters
+    // Apply filters only if they are provided and not default "all"
     if (formType && formType !== 'all') {
         matchStage.formType = formType;
     }
@@ -56,7 +89,37 @@ const getSubmissions = asyncHandler(async (req, res) => {
     if (networkName && networkName !== 'all') {
         matchStage.networkName = networkName;
     }
-
+    if (status && status !== 'all') {
+        matchStage.status = status; // If you use a single status field, else remove if not used
+    }
+    if (employeeName) {
+        matchStage.employeeName = { $regex: employeeName, $options: "i" };
+    }
+    if (deviceType) {
+        matchStage.deviceType = { $regex: deviceType, $options: "i" };
+    }
+    if (ipAddress) {
+        matchStage.ipAddress = { $regex: ipAddress, $options: "i" };
+    }
+    if (macAddress) {
+        matchStage.macAddress = { $regex: macAddress, $options: "i" };
+    }
+    if (os) {
+        matchStage.os = { $regex: os, $options: "i" };
+    }
+    if (serialNo) {
+        matchStage.serialNo = { $regex: serialNo, $options: "i" };
+    }
+    if (coordinatorStatus && coordinatorStatus !== 'all') {
+         // Filter by coordinator approval status (statusCoordinator field)
+         matchStage.statusCoordinator = coordinatorStatus;
+    }
+    if(deviceName){
+        matchStage.deviceName = { $regex: deviceName, $options: "i" };
+    }
+    if(model){
+        matchStage.model = { $regex: model, $options: "i" };
+    }
     const aggregateQuery = Submission.aggregate([
         { $match: matchStage },
         { $sort: { submissionDate: -1 } }
@@ -68,11 +131,12 @@ const getSubmissions = asyncHandler(async (req, res) => {
     };
 
     const submissions = await Submission.aggregatePaginate(aggregateQuery, options);
-    console.log(submissions);
     return res.status(200).json(
         new ApiResponse(200, submissions, "Submissions fetched successfully")
     );
 });
+
+
 
 const getSubmissionById = asyncHandler(async (req, res) => {
     const { submissionId } = req.params;
@@ -94,6 +158,7 @@ const getSubmissionById = asyncHandler(async (req, res) => {
         new ApiResponse(200, submission, "Submission fetched successfully")
     );
 });
+
 
 const updateSubmissionStatus = asyncHandler(async (req, res) => {
     const { submissionId } = req.params;
@@ -129,6 +194,7 @@ const updateSubmissionStatus = asyncHandler(async (req, res) => {
         new ApiResponse(200, submission, "Submission status updated successfully")
     );
 });
+
 
 const getMySubmissions = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10 } = req.query;

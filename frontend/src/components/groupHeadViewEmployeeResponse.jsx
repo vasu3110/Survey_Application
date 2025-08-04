@@ -5,13 +5,17 @@ import { ArrowLeft } from "lucide-react";
 import FormContext from "../contexts/formContext";
 
 const GroupHeadViewEmployeeResponse = () => {
-  const { employeeSubmissions, formTypes, surveyQuestions, profileData ,fetchSurveyQuestions} =
-    React.useContext(FormContext);
+  const {
+    employeeSubmissions,
+    formTypes,
+    surveyQuestions,
+    profileData,
+    fetchSurveyQuestions,
+  } = React.useContext(FormContext);
 
   const navigate = useNavigate();
   const { employeeId } = useParams();
-  // console.log(employeeId);
-  console.log(formTypes)
+
   if (!employeeSubmissions || employeeSubmissions.length === 0) {
     return <div>Loading submissions...</div>;
   }
@@ -24,25 +28,24 @@ const GroupHeadViewEmployeeResponse = () => {
       parseInt(sub.employeeId) === parseInt(employeeId) &&
       sub.groupName === profileData.groupName
   );
-  console.log(submission)
   // useEffect(() => {
   //     // Fetch survey questions when the component mounts
   //     if (submission.formType) {
   //       fetchSurveyQuestions(submission.formType);
   //     }
   //   }, [submission.formType, fetchSurveyQuestions]);
-  
+
   useEffect(() => {
-      if (submission && submission.formType) {
-        fetchSurveyQuestions(submission.formType);
-      }
-      // eslint-disable-next-line
-    }, [submission, fetchSurveyQuestions]);
-  
-    // Wait for questions to load
-    if (!surveyQuestions || surveyQuestions.length === 0) {
-      return <div>Loading survey questions...</div>;
+    if (submission && submission.formType) {
+      fetchSurveyQuestions(submission.formType);
     }
+    // eslint-disable-next-line
+  }, [submission, fetchSurveyQuestions]);
+
+  // Wait for questions to load
+  if (!surveyQuestions || surveyQuestions.length === 0) {
+    return <div>Loading survey questions...</div>;
+  }
 
   if (!submission) {
     return (
@@ -105,7 +108,8 @@ const GroupHeadViewEmployeeResponse = () => {
               </p>
               <p>
                 <strong>Form Type:</strong>{" "}
-                {formTypes.find((f) => f.id === submission.formType)?.formType || submission.formType}
+                {formTypes.find((f) => f.id === submission.formType)
+                  ?.formType || submission.formType}
               </p>
               <p>
                 <strong>Submission Date:</strong> {submission.submissionDate}

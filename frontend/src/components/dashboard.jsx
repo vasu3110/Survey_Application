@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { LoaderCircle } from "lucide-react";
 import FormContext from "../contexts/formContext";
+import { ArrowLeft } from "lucide-react";
 import { Building, Users, User } from "lucide-react";
 
 const Dashboard = () => {
-  const { formTypes, isLoading, error, fetchSurveys ,formIconMap} = useContext(FormContext);
+  const { formTypes, isLoading, error, fetchSurveys, formIconMap } =
+    useContext(FormContext);
   const navigate = useNavigate();
-  console.log(formTypes)
   useEffect(() => {
     fetchSurveys();
   }, [fetchSurveys]); // The dependency array ensures this runs only once on mount
@@ -16,7 +17,7 @@ const Dashboard = () => {
   const handleFormTypeSelect = (formType) => {
     // setSelectedFormType(formType);
     // You'll likely fetch specific questions for this formType on the next page
-    navigate(`/survey/${formType}`);
+    navigate(`/survey/systemspecs/${formType}`);
   };
   if (isLoading) {
     return (
@@ -41,6 +42,13 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
+          <button
+            onClick={() => navigate("/profile")}
+            className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back
+          </button>
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
             Select Survey Type
           </h2>
@@ -57,7 +65,7 @@ const Dashboard = () => {
             >
               <div className="text-center">
                 <div className="flex justify-center text-blue-500 text-4xl mb-4">
-                  {formIconMap.icon}
+                  {formIconMap[form.icon] || formIconMap.default}
                 </div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   {form.id}

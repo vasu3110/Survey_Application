@@ -7,7 +7,11 @@ import { Building, Users, User } from "lucide-react";
 
 const FormContextProvider = ({ children }) => {
   const [userType, setUserType] = useState("");
-  const [loginData, setLoginData] = useState({ username: "", password: "",groupname:""});
+  const [loginData, setLoginData] = useState({
+    username: "",
+    password: "",
+    groupname: "",
+  });
   const [profileData, setProfileData] = useState({
     // grpname: "",
     // address: "",
@@ -26,13 +30,22 @@ const FormContextProvider = ({ children }) => {
     formType: "all",
     groupName: "all",
     networkName: "all",
+    employeeName: "", // new search filters added
+    deviceType: "",
+    ipAddress: "",
+    macAddress: "",
+    os: "",
+    serialNo: "",
+    coordinatorStatus: "all",
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const formIconMap = {
     "group-survey": <Building />,
-    "Users": <Users />,
-    "User": <User />,
+    Users: <Users />,
+    User: <User />,
+    Building: <Building />,
     default: <Building />, // A fallback icon
   };
 
@@ -60,14 +73,15 @@ const FormContextProvider = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-        const response = await api.post('/auth/register', userData); // Use userData from the component
-        return response.data; // Return data on success
+      const response = await api.post("/auth/register", userData); // Use userData from the component
+      return response.data; // Return data on success
     } catch (err) {
-        const errorMessage = err.response?.data?.message || "An unexpected error occurred.";
-        setError(errorMessage); // Set global error state
-        throw new Error(errorMessage); // Throw error to be caught by the component
+      const errorMessage =
+        err.response?.data?.message || "An unexpected error occurred.";
+      setError(errorMessage); // Set global error state
+      throw new Error(errorMessage); // Throw error to be caught by the component
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -100,9 +114,9 @@ const FormContextProvider = ({ children }) => {
       const formattedData = response.data.data.map((survey) => ({
         id: survey.formType, // Use formType as the unique ID for the frontend
         name: survey.name,
-        icon: survey.icon // Match icon string to component
+        icon: survey.icon, // Match icon string to component
       }));
- 
+
       setFormTypes(formattedData);
     } catch (err) {
       console.error("Failed to fetch surveys:", err);
@@ -135,8 +149,6 @@ const FormContextProvider = ({ children }) => {
       const response = await api.post("/submissions/create", submissionData);
       return response.data;
     } catch (error) {
-      console.log("Tried To submit survey:", submissionData);
-      console.error("Failed to submit survey:", error);
       throw new Error(error.response?.data?.message || "Submission failed");
     }
   };
@@ -154,10 +166,10 @@ const FormContextProvider = ({ children }) => {
   // Function to fetch current user's submissions
   const fetchMySubmissions = async () => {
     try {
-      const response = await api.get('/submissions/my-submissions');
+      const response = await api.get("/submissions/my-submissions");
       setEmployeeSubmissions(response.data.data.docs || []);
     } catch (error) {
-      console.error('Failed to fetch my submissions:', error);
+      console.error("Failed to fetch my submissions:", error);
     }
   };
 
@@ -172,44 +184,43 @@ const FormContextProvider = ({ children }) => {
   };
 
   const createSurvey = async (surveyData) => {
-    console.log(surveyData);
     // The backend `createSurvey` function handles the API call
     // This function can be a wrapper if you need to add more logic
     // For now, let's assume direct API call from the component is fine,
     // but centralizing it here is best practice.
     try {
-        const response = await api.post('/surveys/create', surveyData);
-        return response.data;
+      const response = await api.post("/surveys/create", surveyData);
+      return response.data;
     } catch (error) {
-      console.log("Inside createSurvey error")
-        throw new Error(error.response?.data?.message || "Failed to create survey");
+      throw new Error(
+        error.response?.data?.message || "Failed to create survey"
+      );
     }
-};
+  };
 
-const updateSurvey = async (formType, surveyData) => {
-    console.log(formType)
-    console.log(surveyData)
-    console.log(`/surveys/${formType}`, surveyData)
-    console.log(typeof surveyData.icon)
+  const updateSurvey = async (formType, surveyData) => {
     try {
-        const response = await api.patch(`/surveys/${formType}`, surveyData);
-        return response.data;
+      const response = await api.patch(`/surveys/${formType}`, surveyData);
+      return response.data;
     } catch (error) {
-        console.log("catch block aa gya oye")
-        throw new Error(error.response?.data?.message || "Failed to update survey");
+      throw new Error(
+        error.response?.data?.message || "Failed to update survey"
+      );
     }
-};
+  };
 
-const deleteSurvey = async (formType) => {
+  const deleteSurvey = async (formType) => {
     try {
-        // Your backend uses a PATCH for soft-delete, but a DELETE verb is fine here
-        // as long as the route is configured for it.
-        const response = await api.delete(`/surveys/${formType}`);
-        return response.data;
+      // Your backend uses a PATCH for soft-delete, but a DELETE verb is fine here
+      // as long as the route is configured for it.
+      const response = await api.delete(`/surveys/${formType}`);
+      return response.data;
     } catch (error) {
-        throw new Error(error.response?.data?.message || "Failed to delete survey");
+      throw new Error(
+        error.response?.data?.message || "Failed to delete survey"
+      );
     }
-};
+  };
 
   const value = {
     userType,
@@ -245,9 +256,9 @@ const deleteSurvey = async (formType) => {
     fetchMySubmissions,
     register,
     createSurvey,
-    updateSurvey, 
+    updateSurvey,
     deleteSurvey,
-    formIconMap
+    formIconMap,
   };
 
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;

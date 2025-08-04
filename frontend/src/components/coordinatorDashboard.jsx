@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight, User, Users, LogOut, FileEdit } from "lucide-react";
 import FormContext from "../contexts/formContext";
 import { authService } from "../services/authService";
-
+import { ArrowLeft } from "lucide-react";
 const CoordinatorDashboard = () => {
   const navigate = useNavigate();
   // Assuming 'user' is now provided by the context for the welcome message
@@ -39,7 +39,9 @@ const CoordinatorDashboard = () => {
               <h1 className="text-2xl font-bold text-gray-800">
                 Coordinator Dashboard
               </h1>
-              <p className="text-sm text-gray-600">Welcome, {user?.username || 'Coordinator'}</p>
+              <p className="text-sm text-gray-600">
+                Welcome, {user?.username || "Coordinator"}
+              </p>
             </div>
             <button
               onClick={handleLogout}
@@ -73,7 +75,9 @@ const CoordinatorDashboard = () => {
 
           {/* Card 2: Review Employee Forms */}
           <div
-            onClick={() => navigate("/coordinatorDashboard/employeeFormsReview")}
+            onClick={() =>
+              navigate("/coordinatorDashboard/employeeFormsReview")
+            }
             className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-blue-300"
           >
             <div className="flex items-center justify-between">

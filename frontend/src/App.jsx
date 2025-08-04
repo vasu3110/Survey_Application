@@ -33,6 +33,7 @@ import EmployeeSubmissions from "./components/employeeSubmissions";
 import EmployeeViewSubmission from "./components/employeeViewSubmission";
 import Register from "./components/register";
 import ManageSurveys from "./components/manageSurveys"; // Import the Manage Surveys component
+import SystemSpecificationsForm from "./components/systemSpecification"; // Import the System Specifications Form component
 // Context for global state management
 
 // Protected Route Component
@@ -95,12 +96,12 @@ const App = () => {
             }
           />
           <Route
-              path="/coordinator/manage-surveys"
-              element={
-                  <ProtectedRoute userType="coordinator">
-                      <ManageSurveys />
-                  </ProtectedRoute>
-              }
+            path="/coordinator/manage-surveys"
+            element={
+              <ProtectedRoute userType="coordinator">
+                <ManageSurveys />
+              </ProtectedRoute>
+            }
           />
           <Route path="/grouphead/login" element={<GroupHeadLogin />} />
           <Route
@@ -140,6 +141,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/survey/systemspecs/:formType"
+            element={
+              <ProtectedRoute>
+                <SystemSpecificationsForm />
               </ProtectedRoute>
             }
           />

@@ -36,11 +36,6 @@ const userSchema = new Schema(
             designation: String,
             phone: String,
             groupName: String,
-            address: String,
-            network: String,
-            os: String,
-            antivirus: String,
-            roomNo: Number
         },
         refreshToken: {
             type: String

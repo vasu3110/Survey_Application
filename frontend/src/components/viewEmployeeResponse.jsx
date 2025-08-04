@@ -4,9 +4,12 @@ import { ArrowLeft } from "lucide-react";
 import FormContext from "../contexts/formContext";
 
 const ViewEmployeeResponse = () => {
-  const { employeeSubmissions, formTypes, surveyQuestions ,fetchSurveyQuestions} =
-    React.useContext(FormContext);
-  console.log(formTypes)
+  const {
+    employeeSubmissions,
+    formTypes,
+    surveyQuestions,
+    fetchSurveyQuestions,
+  } = React.useContext(FormContext);
   if (!employeeSubmissions || employeeSubmissions.length === 0) {
     return <div>Loading submissions...</div>;
   }
@@ -20,12 +23,6 @@ const ViewEmployeeResponse = () => {
   // }
   const navigate = useNavigate();
   const { employeeId } = useParams();
-  // console.log(useParams().employeeId);
-  // console.log("Submission ID:", employeeId);
-
-  employeeSubmissions.forEach((element) => {
-    console.log(element);
-  });
 
   const submission = employeeSubmissions.find(
     (sub) => parseInt(sub.employeeId) === parseInt(employeeId)
@@ -41,9 +38,7 @@ const ViewEmployeeResponse = () => {
   if (!surveyQuestions || surveyQuestions.length === 0) {
     return <div>Loading survey questions...</div>;
   }
-  
 
-  console.log(submission)
   if (!submission) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">

@@ -1,10 +1,14 @@
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import FormContext from "../contexts/formContext";
+
 const Survey = () => {
   const { formType } = useParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const systemId = searchParams.get("systemId");
   const {
     formTypes,
     surveyResponses,
@@ -54,7 +58,7 @@ const Survey = () => {
     );
 
     if (allAnswered) {
-      navigate(`/survey/${formType}/review`);
+      navigate(`/survey/${formType}/review?systemId=${systemId}`);
     } else {
       alert("Please answer all questions before submitting.");
     }

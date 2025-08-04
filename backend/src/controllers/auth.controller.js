@@ -4,7 +4,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/User.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
-
 const generateAccessAndRefreshTokens = async(userId) => {
     try {
         const user = await User.findById(userId);
@@ -20,68 +19,65 @@ const generateAccessAndRefreshTokens = async(userId) => {
     }
 }
 
+// Controller:
 const registerUser = asyncHandler(async (req, res) => {
-    const { username, email, password, userType, profileData } = req.body;
+  // Validate input errors from express-validator
 
-    if ([username, email, password, userType].some((field) => field?.trim() === "")) {
-        throw new ApiError(400, "All fields are required");
-    }
+  const { username, email, password, userType, groupname } = req.body;
 
-    const existedUser = await User.findOne({
-        $or: [{ username }, { email }]
-    });
+  // Extra manual sanitization if needed (e.g., lowercase)
+  const safeUsername = username.toLowerCase();
 
-    if (existedUser) {
-        throw new ApiError(409, "User with email or username already exists");
-    }
+  const existedUser = await User.findOne({
+    $or: [{ username: safeUsername }, { email }],
+  });
 
-    const user = await User.create({
-        username: username.toLowerCase(),
-        email,
-        password,
-        userType,
-        profileData: profileData || {}
-    });
+  if (existedUser) {
+    throw new ApiError(409, 'User with email or username already exists');
+  }
 
-    const createdUser = await User.findById(user._id).select("-password -refreshToken");
+  const user = await User.create({
+    username: safeUsername,
+    email,
+    password,
+    userType,
+    profileData: {
+      groupName: groupname,
+    },
+  });
 
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user");
-    }
+  const createdUser = await User.findById(user._id).select('-password -refreshToken');
 
-    return res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered Successfully")
-    );
+  if (!createdUser) {
+    throw new ApiError(500, 'Something went wrong while registering the user');
+  }
+
+  return res.status(201).json(new ApiResponse(200, createdUser, 'User registered Successfully'));
 });
 
+
 const loginUser = asyncHandler(async (req, res) => {
-    const { username, password, userType, groupname } = req.body;
 
+  const { username, password, userType, groupname } = req.body;
+  const safeUsername = username.toLowerCase();
     if (!username || !password || !userType) {
-        throw new ApiError(400, "Username, password and userType are required");
+            throw new ApiError(400, "Username, password and userType are required");
     }
+  const user = await User.findOne({ username: safeUsername, userType });
 
-    const user = await User.findOne({
-        username: username.toLowerCase(),
-        userType
-    });
+  if (!user) {
+    throw new ApiError(404, 'User does not exist');
+  }
 
-    if (!user) {
-        throw new ApiError(404, "User does not exist");
-    }
+  const isPasswordValid = await user.isPasswordCorrect(password);
 
-    const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, 'Invalid user credentials');
+  }
 
-    if (!isPasswordValid) {
-        throw new ApiError(401, "Invalid user credentials");
-    }
-
-    // For group head, verify group name
-    if (userType === 'grouphead' && groupname) {
-        if (user.profileData?.groupName !== groupname) {
-            throw new ApiError(401, "Invalid group name");
-        }
-    }
+  if (userType === 'grouphead' && groupname && user.profileData?.groupName !== groupname) {
+    throw new ApiError(401, 'Invalid group name');
+  }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
 
@@ -123,7 +119,7 @@ const logoutUser = asyncHandler(async(req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: true,
     };
 
     return res
