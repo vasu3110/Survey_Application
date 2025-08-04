@@ -4,6 +4,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/User.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import { validationResult } from "express-validator";
+
 const generateAccessAndRefreshTokens = async(userId) => {
     try {
         const user = await User.findById(userId);
@@ -22,7 +24,10 @@ const generateAccessAndRefreshTokens = async(userId) => {
 // Controller:
 const registerUser = asyncHandler(async (req, res) => {
   // Validate input errors from express-validator
-
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new ApiError(422, "Invalid inputs", errors.array());
+  }
   const { username, email, password, userType, groupname } = req.body;
 
   // Extra manual sanitization if needed (e.g., lowercase)
@@ -57,7 +62,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
 
 const loginUser = asyncHandler(async (req, res) => {
-
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid login inputs", errors.array());
+    }
   const { username, password, userType, groupname } = req.body;
   const safeUsername = username.toLowerCase();
     if (!username || !password || !userType) {
@@ -176,6 +184,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        throw new ApiError(422, "Invalid profile data", errors.array());
+    }
     const { profileData } = req.body;
 
     if (!profileData) {
