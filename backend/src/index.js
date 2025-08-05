@@ -24,8 +24,8 @@ const PORT = process.env.PORT || 8000;
 
 connectDB()
     .then(() => {
-        https.createServer(sslOptions, app).listen(PORT, () => {
-            console.log(`🚀 HTTPS server is running at https://localhost:${PORT}`);
+        https.createServer(sslOptions, app).listen(PORT, '0.0.0.0', () => {
+          console.log(`🚀 HTTPS server is running on https://0.0.0.0:${PORT}`);
         });
     })
     .catch((err) => {
