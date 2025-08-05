@@ -7,10 +7,9 @@ import helmet from "helmet"; // Import helmet for security headers
 const app = express();
 
 app.use(cors({
-    origin: 'https://localhost:5173', // Your React dev server
+    // origin: 'https://localhost:5173', // Your React dev server
+    origin: 'https://survey-application-ote1.onrender.com', // Update this to your frontend URL
     credentials: true
-    // methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    // allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(helmet()); // Use helmet to set security headers
 app.use(sanitizeRequest);

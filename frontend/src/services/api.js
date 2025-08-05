@@ -1,7 +1,8 @@
 // src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://localhost:8000'; // Update this to your backend URL
+// const API_BASE_URL = 'https://localhost:8000'; // Update this to your backend URL
+const API_BASE_URL="https://survey-application-backend-ote1.onrender.com"
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`,
