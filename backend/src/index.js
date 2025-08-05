@@ -21,7 +21,7 @@ connectDB()
   .then(() => {
     if (isProduction) {
       // Render expects HTTP server, not HTTPS
-      http.createServer(app).listen(PORT, '0.0.0.0', () => {
+      http.createServer(app).listen(PORT,() => {
         console.log(`🚀 HTTP server running on http://0.0.0.0:${PORT}`);
       });
     } else {
